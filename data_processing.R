@@ -6,7 +6,7 @@ library(dplyr)
 # ----------------------------------------------------
 # person
 # ----------------------------------------------------
-person <- read.table('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/PERSON.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
+person <- read.table('./PERSON.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
 names(person) <- c('person_id', 'stop_id', 'person_type', 'age', 'gender', 'ethnicity', 'race')
 
 # remove last row (incomplete)
@@ -34,7 +34,7 @@ person <- person %>%
 # ----------------------------------------------------
 # search
 # ----------------------------------------------------
-search <- read.table('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/SEARCH.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
+search <- read.table('./SEARCH.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
 names(search) <- c('search_id','stop_id','person_id','search_type','vehicle_search','driver_search','passenger_search','property_search','vehicle_seized','personal_property_seized','other_property_seized')
 
 search <- search %>%
@@ -50,7 +50,7 @@ search <- search %>%
          property_search   = ifelse(property_search==1,TRUE,FALSE),
          vehicle_seized    = ifelse(vehicle_seized==1,TRUE,FALSE),
          personal_property_seized = ifelse(personal_property_seized==1,TRUE,FALSE),
-         other_property_seized    = ifelse(other_property_seized==1,TRUE,FALSE)) 
+         other_property_seized    = ifelse(other_property_seized==1,TRUE,FALSE))
 
 
 
@@ -59,7 +59,7 @@ search <- search %>%
 # one row per stop if a search was conducted
 # one search_type per search
 # ----------------------------------------------------
-search_basis <- read.table('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/SEARCHBASIS.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
+search_basis <- read.table('./SEARCHBASIS.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
 names(search_basis) <- c('search_basis_id','search_id','person_id','stop_id','search_basis')
 
 search_basis <- search_basis %>%
@@ -74,13 +74,13 @@ search_basis <- search_basis %>%
 search_basis <- search_basis %>%
   group_by(id) %>%
   summarise(search_id = mean(search_id),
-            stop_id = mean(stop_id), 
+            stop_id = mean(stop_id),
             all_basis = paste(search_basis, collapse=','))
 
 # ----------------------------------------------------
 # contraband
 # ----------------------------------------------------
-contraband <- read.table('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/CONTRABAND.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
+contraband <- read.table('./CONTRABAND.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE)
 names(contraband) <- c('contraband_id','search_id','person_id','stop_id',
                        'ounces_drugs','pounds_drugs','pints_alcohol','gallons_alcohol','dosages_drugs','grams_drugs',
                        'kilos_drugs', 'amount_money','number_weapons','other_contraband_dollar_amount')
@@ -97,8 +97,8 @@ contraband <- contraband %>%
 # ----------------------------------------------------
 # stops
 # ----------------------------------------------------
-stops <- read.table('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/STOP.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE, quote = "", fill=TRUE)
-names(stops) <- c('stop_id', 'police_department', 'stop_date', 'stop_purpose', 'action', 'driver_arrest', 'passenger_arrest', 
+stops <- read.table('./STOP.tsv', sep='\t', header=TRUE, stringsAsFactors=FALSE, quote = "", fill=TRUE)
+names(stops) <- c('stop_id', 'police_department', 'stop_date', 'stop_purpose', 'action', 'driver_arrest', 'passenger_arrest',
                   'encounter_force','engage_force', 'officer_injury', 'driver_injury', 'passenger_injury', 'officer_id',
                   'county_id', 'stop_city')
 
@@ -125,7 +125,7 @@ stops <- stops %>%
          verbal_warning  = ifelse(action=='Verbal Warning',TRUE,FALSE),
          written_warning = ifelse(action=='Written Warning',TRUE,FALSE),
          citation = ifelse(action=='Citation',TRUE,FALSE),
-         arrest   = ifelse(action=='Arrest',TRUE,FALSE),        
+         arrest   = ifelse(action=='Arrest',TRUE,FALSE),
          driver_arrest    = ifelse(driver_arrest==1,TRUE,FALSE),
          passenger_arrest = ifelse(passenger_arrest==1,TRUE,FALSE),
          encounter_force  = ifelse(encounter_force==1,TRUE,FALSE),
@@ -139,7 +139,7 @@ stops <- stops %>%
 # ----------------------------------------------------
 # add county name
 # ----------------------------------------------------
-county_codes <- read.csv('/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/orig_data/county-codes.csv', sep=',', header=TRUE, stringsAsFactors=FALSE)
+county_codes <- read.csv('./county_codes.csv', sep=',', header=TRUE, stringsAsFactors=FALSE)
 county_codes <- county_codes[,1:2]
 stops$county_name <- county_codes$county_name[match(stops$county_id, county_codes$county_id)]
 
@@ -165,8 +165,8 @@ north_carolina <- north_carolina %>%
          alcohol = ifelse(search_conducted==TRUE & is.na(alcohol), FALSE, alcohol),
          drugs   = ifelse(search_conducted==TRUE & is.na(drugs), FALSE, drugs))
 
-# save clean data frame 
-save(north_carolina, file='../data/north_carolina_clean.RData')
+# save clean data frame
+save(north_carolina, file='./north_carolina_clean.RData')
 
 
 # ------------------------------------------------------------------------------------------------
@@ -175,14 +175,14 @@ save(north_carolina, file='../data/north_carolina_clean.RData')
 # - remove race: other, missing, Native American
 # - include only 100 largest departments
 # ------------------------------------------------------------------------------------------------
-top_100_depts <- north_carolina %>% 
+top_100_depts <- north_carolina %>%
   filter(police_department != 'NC State Highway Patrol') %>%
   filter(race %in% c('White', 'Black', 'Hispanic', 'Asian')) %>%
   filter(gender %in% c('Female', 'Male')) %>%
-  group_by(police_department) %>% 
-  tally() %>% 
-  top_n(100) %>% 
-  arrange(desc(n)) %>% 
+  group_by(police_department) %>%
+  tally() %>%
+  top_n(100) %>%
+  arrange(desc(n)) %>%
   dplyr::select(police_department) %>%
   as.data.frame()
 
@@ -201,5 +201,4 @@ north_carolina <- north_carolina %>%
 
 
 # save clean data as tsv file
-write.table(north_carolina, file='/Users/ravielakshmanan/Downloads/Classes/FCJ/HW3/north_carolina.tsv', quote=FALSE, sep='\t', row.names = FALSE)
-
+write.table(north_carolina, file='./north_carolina.tsv', quote=FALSE, sep='\t', row.names = FALSE)
